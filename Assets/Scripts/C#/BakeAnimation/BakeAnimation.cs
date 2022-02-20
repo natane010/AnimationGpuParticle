@@ -7,6 +7,9 @@ public class BakeAnimation : MonoBehaviour
     [SerializeField]
     SkinnedMeshRenderer targetSMR;
 
+    RenderTexture currPositonBuffer;
+    RenderTexture currNormalBuffer;
+
     private void Start()
     {
         ReCreateMesh();
