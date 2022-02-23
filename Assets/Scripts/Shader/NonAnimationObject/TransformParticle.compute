@@ -1,18 +1,22 @@
 ﻿#pragma kernel SetupParticles
-#pragma kernel SetupParticlesImmediately
 #pragma kernel Disable
 
-#pragma kernel UpdateAsTarget
-#pragma kernel UpdateAsExplosion
 #pragma kernel UpdateAsGravity
 #pragma kernel UpdateKeepAsPosition
 #pragma kernel UpdateAsTargetPosition
+
+#pragma kernel UpdatePositionAsAnimation
+
 
 #define THREAD_NUM 64
 
 #define PI 3.1415926535
 
 #include "./NoiseMath.cginc"
+
+
+#include "HLSLSupport.cginc"
+
 
 struct TransformParticle
 {
@@ -47,10 +51,42 @@ struct InitData
     float3 horizontal;
 };
 
+struct SkinInVert
+{
+    float3 pos;
+    float3 nor;
+    float4 tan;
+};
+
+struct InVert2Skin
+{
+    float weight0;
+    float weight1;
+    float weight2;
+    float weight3;
+    int index0;
+    int index1;
+    int index2;
+    int index3;
+};
+
+struct OutSkinVert
+{
+    float3 pos;
+    float3 norm;
+    float4 tang;
+};
+
 RWStructuredBuffer<TransformParticle> _Particles;
 StructuredBuffer<InitData> _InitDataList;
 StructuredBuffer<float4x4> _MatrixData;
 StructuredBuffer<uint> _IndexBuffer;
+
+StructuredBuffer<SkinInVert> m_Source;
+StructuredBuffer<InVert2Skin> m_SourceSkin;
+StructuredBuffer<float4x4> m_mBones;
+
+uint m_VertCount;
 
 float _DeltaTime;
 float _Time;
@@ -135,7 +171,30 @@ void UpdateAsTarget(uint id : SV_DispatchThreadID)
 [numthreads(THREAD_NUM, 1, 1)]
 void UpdateAsTargetPosition(uint id : SV_DispatchThreadID)
 {
+    uint ui = id;
+
     TransformParticle p = _Particles[id];
+
+     
+    if (ui <= m_VertCount)
+    {
+        const SkinInVert vert = m_Source[ui];
+        InVert2Skin mSS = m_SourceSkin[ui];
+        float3 vP = vert.pos.xyz;
+        float3 vPacc = float3(0, 0, 0);
+
+        vPacc += mSS.weight0*mul(  m_mBones[mSS.index0], float4(vP,1) ).xyz;
+        vPacc += mSS.weight1*mul(  m_mBones[mSS.index1], float4(vP,1) ).xyz;
+        vPacc += mSS.weight2*mul(  m_mBones[mSS.index2], float4(vP,1) ).xyz;
+        vPacc += mSS.weight3*mul(  m_mBones[mSS.index3], float4(vP,1) ).xyz;
+
+        vP = vPacc;
+        //m_MeshVertsOut[id].pos.xyz = vp;
+        p.targetPosition = vP;
+    }
+
+
+   
 
     float3 delta = p.targetPosition - p.position;
     float3 pos = delta * _DeltaTime * p.speed;
@@ -145,25 +204,6 @@ void UpdateAsTargetPosition(uint id : SV_DispatchThreadID)
 
     p.position += pos;
     p.useTexture = 1;
-
-    _Particles[id] = p;
-}
-
-[numthreads(THREAD_NUM, 1, 1)]
-void UpdateAsExplosion(uint id : SV_DispatchThreadID)
-{
-    TransformParticle p = _Particles[id];
-
-    float3 pos = (p.velocity.xyz) * p.velocity.w * _DeltaTime;
-
-    float s = sin(rand(id) + _Time) * 0.00003;
-    p.velocity.xyz += s;
-    float k = 2.0;
-    p.velocity.xyz -= k * p.velocity.xyz * _DeltaTime;
-
-    p.position += pos;
-
-    p.useTexture = 0;
 
     _Particles[id] = p;
 }
@@ -190,3 +230,35 @@ void UpdateAsGravity(uint id : SV_DispatchThreadID)
 
     _Particles[id] = p;
 }
+
+
+
+[numthreads(THREAD_NUM, 1, 1)]
+void UpdatePositionAsAnimation(uint3 id : SV_DispatchThreadID, 
+    SAMPLER_UNIFORM StructuredBuffer<SkinInVert> m_Source,  
+    SAMPLER_UNIFORM StructuredBuffer<InVert2Skin> m_SourceSkin,
+    SAMPLER_UNIFORM StructuredBuffer<float4x4> m_mBones)
+{
+    uint ui = id.x;
+    TransformParticle p = _Particles[ui];
+
+    if (ui >= m_VertCount)
+    {
+        return;
+    }
+
+    const SkinInVert vert = m_Source[ui];
+    InVert2Skin mSS = m_SourceSkin[ui];
+    float3 vP = vert.pos.xyz;
+    float3 vPacc = float3(0, 0, 0);
+
+    vPacc += mSS.weight0*mul(  m_mBones[mSS.index0], float4(vP,1) ).xyz;
+    vPacc += mSS.weight1*mul(  m_mBones[mSS.index1], float4(vP,1) ).xyz;
+    vPacc += mSS.weight2*mul(  m_mBones[mSS.index2], float4(vP,1) ).xyz;
+    vPacc += mSS.weight3*mul(  m_mBones[mSS.index3], float4(vP,1) ).xyz;
+
+    vP = vPacc;
+    p.targetPosition = vP;
+    
+}
+

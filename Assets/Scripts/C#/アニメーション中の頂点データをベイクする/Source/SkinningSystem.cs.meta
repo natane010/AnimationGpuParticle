@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 74cd332165682d940a21221762aa8e9d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - _model: {fileID: 11400000, guid: 05d6034fb69c77e4e934c2f8dad12af5, type: 2}
+  - _replacementShader: {fileID: 4800000, guid: 0b36e78bf623c2e4596bd9f5b32a8dab, type: 3}
+  - _replacementShaderPosition: {fileID: 4800000, guid: 0df4176f35219e642b05fdb87b7ba6b4, type: 3}
+  - _replacementShaderNormal: {fileID: 4800000, guid: f8e1ac490fa0d2d4693f9e0fd7c6d448, type: 3}
+  - _replacementShaderTangent: {fileID: 4800000, guid: cb61dc0c2475f8f43ad8bd61e4ba40e7, type: 3}
+  - _placeholderMaterial: {fileID: 2100000, guid: a75bbec6242d7aa4c87e40e2eac67352, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

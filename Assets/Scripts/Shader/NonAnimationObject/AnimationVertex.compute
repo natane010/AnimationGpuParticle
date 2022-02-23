@@ -1,0 +1,93 @@
+#pragma kernel UpdatePositionAsAnimation
+
+#define THREAD_NUM 64
+
+#define PI 3.1415926535
+
+#include "HLSLSupport.cginc"
+
+struct TransformParticle
+{
+    int isActive;
+    int targetId;
+    float2 uv;
+
+    float3 targetPosition;
+
+    float speed;
+    float3 position;
+
+    int useTexture;
+    float scale;
+
+    float4 velocity;
+
+    float3 horizontal;
+};
+
+RWStructuredBuffer<TransformParticle> _Particles;
+
+uint m_VertCount;
+
+struct SkinInVert
+{
+    float3 pos;
+    float3 nor;
+    float4 tan;
+};
+
+struct InVert2Skin
+{
+    float weight0;
+    float weight1;
+    float weight2;
+    float weight3;
+    int index0;
+    int index1;
+    int index2;
+    int index3;
+};
+
+struct OutSkinVert
+{
+    float3 pos;
+    float3 norm;
+    float4 tang;
+};
+
+
+//[numthreads(THREAD_NUM, 1, 1)]
+//void UpdatePositionAsAnimation(uint id : SV_DispatchThreadID, 
+//    SAMPLER_UNIFORM StructuredBuffer<SkinInVert> m_Source, 
+//    SAMPLER_UNIFORM StructuredBuffer<InVert2Skin> m_SourceSkin, 
+//    SAMPLER_UNIFORM RWStructuredBuffer<OutSkinVert> m_MeshVertsOut, 
+//    SAMPLER_UNIFORM StructuredBuffer<float4x4> m_mBones)
+[numthreads(THREAD_NUM, 1, 1)]
+void UpdatePositionAsAnimation(uint3 id : SV_DispatchThreadID, 
+    SAMPLER_UNIFORM StructuredBuffer<SkinInVert> m_Source,  
+    SAMPLER_UNIFORM StructuredBuffer<InVert2Skin> m_SourceSkin,
+    SAMPLER_UNIFORM StructuredBuffer<float4x4> m_mBones)
+{
+    uint ui = id.x;
+    TransformParticle p = _Particles[ui];
+
+    if (ui >= m_VertCount)
+    {
+        return;
+    }
+
+    const SkinInVert vert = m_Source[ui];
+    InVert2Skin mSS = m_SourceSkin[ui];
+    float3 vP = vert.pos.xyz;
+    float3 vPacc = float3(0, 0, 0);
+
+    vPacc += mSS.weight0*mul(  m_mBones[mSS.index0], float4(vP,1) ).xyz;
+    vPacc += mSS.weight1*mul(  m_mBones[mSS.index1], float4(vP,1) ).xyz;
+    vPacc += mSS.weight2*mul(  m_mBones[mSS.index2], float4(vP,1) ).xyz;
+    vPacc += mSS.weight3*mul(  m_mBones[mSS.index3], float4(vP,1) ).xyz;
+
+    vP = vPacc;
+    //m_MeshVertsOut[id].pos.xyz = vp;
+    p.targetPosition = vP;
+    
+}
