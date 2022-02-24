@@ -103,8 +103,12 @@ public class SkinningParticleEditor : Editor
         reconfigured |= EditorGUI.EndChangeCheck();
 
         if (reconfigured)
-            foreach (SkinningParticle sp in targets) sp.UpdateConfiguration();
-
+        {
+            foreach (SkinningParticle sp in targets)
+            {
+                sp.UpdateConfiguration();
+            }
+        }
         serializedObject.ApplyModifiedProperties();
     }
 }

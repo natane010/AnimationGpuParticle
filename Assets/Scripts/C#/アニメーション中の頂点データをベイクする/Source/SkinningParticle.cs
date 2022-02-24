@@ -6,9 +6,6 @@ using UnityEngine;
 [RequireComponent(typeof(MeshRenderer))]
 public class SkinningParticle : MonoBehaviour
 {
-    #region External object/asset references
-
-    /// Reference to an effect source.
     public SkinningSystem source
     {
         get { return _source; }
@@ -18,7 +15,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     SkinningSystem _source;
 
-    /// Reference to a template object used for rendering particles.
     public SkinningParticleModel template
     {
         get { return _template; }
@@ -28,12 +24,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     SkinningParticleModel _template;
 
-    #endregion
-
-    #region Basic dynamics settings
-
-    /// Limits speed of particles. This only affects changes in particle
-    /// positions (doesn't modify velocity vectors).
     public float speedLimit
     {
         get { return _speedLimit; }
@@ -42,8 +32,6 @@ public class SkinningParticle : MonoBehaviour
 
     [SerializeField]
     float _speedLimit = 1.0f;
-
-    /// The drag (damping) coefficient.
     public float drag
     {
         get { return _drag; }
@@ -53,7 +41,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField, Range(0, 15)]
     float _drag = 0.1f;
 
-    /// The constant acceleration.
     public Vector3 gravity
     {
         get { return _gravity; }
@@ -63,11 +50,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     Vector3 _gravity = Vector3.zero;
 
-    #endregion
-
-    #region Particle life (duration) settings
-
-    /// Changes the duration of a particle based on its initial speed.
     public float speedToLife
     {
         get { return _speedToLife; }
@@ -77,7 +59,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _speedToLife = 4.0f;
 
-    /// The maximum duration of particles.
     public float maxLife
     {
         get { return _maxLife; }
@@ -87,11 +68,7 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _maxLife = 4.0f;
 
-    #endregion
 
-    #region Spin (rotational movement) settings
-
-    /// Changes the angular velocity of a particle based on its speed.
     public float speedToSpin
     {
         get { return _speedToSpin; }
@@ -101,7 +78,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _speedToSpin = 60.0f;
 
-    /// The maximum angular velocity of particles.
     public float maxSpin
     {
         get { return _maxSpin; }
@@ -111,11 +87,7 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _maxSpin = 20.0f;
 
-    #endregion
 
-    #region Particle scale settings
-
-    /// Changes the scale of a particle based on its initial speed.
     public float speedToScale
     {
         get { return _speedToScale; }
@@ -125,7 +97,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _speedToScale = 0.5f;
 
-    /// The maximum scale of particles.
     public float maxScale
     {
         get { return _maxScale; }
@@ -135,11 +106,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _maxScale = 1.0f;
 
-    #endregion
-
-    #region Turbulent noise settings
-
-    /// The amplitude of acceleration from the turbulent noise.
     public float noiseAmplitude
     {
         get { return _noiseAmplitude; }
@@ -149,7 +115,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _noiseAmplitude = 1.0f;
 
-    /// The spatial frequency of the turbulent noise field.
     public float noiseFrequency
     {
         get { return _noiseFrequency; }
@@ -159,7 +124,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _noiseFrequency = 0.2f;
 
-    /// Determines how fast the turbulent noise field changes.
     public float noiseMotion
     {
         get { return _noiseMotion; }
@@ -169,11 +133,6 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     float _noiseMotion = 1.0f;
 
-    #endregion
-
-    #region Other settings
-
-    /// Determines the random number sequence used for the effect.
     public int randomSeed
     {
         get { return _randomSeed; }
@@ -183,9 +142,7 @@ public class SkinningParticle : MonoBehaviour
     [SerializeField]
     int _randomSeed = 0;
 
-    #endregion
 
-    #region Reconfiguration detection
 
     bool _reconfigured;
 
@@ -198,16 +155,12 @@ public class SkinningParticle : MonoBehaviour
 
 #endif
 
-    #endregion
 
-    #region Built-in assets
 
     [SerializeField] Shader _kernelShader;
     [SerializeField] Material _defaultMaterial;
 
-    #endregion
 
-    #region Animation kernels management
 
     enum Kernels
     {
@@ -278,9 +231,7 @@ public class SkinningParticle : MonoBehaviour
         _kernel.SwapBuffers();
     }
 
-    #endregion
-
-    #region External renderer control
+    
 
     InitRendererAdapter _renderer;
 
@@ -289,8 +240,7 @@ public class SkinningParticle : MonoBehaviour
         if (_renderer == null)
             _renderer = new InitRendererAdapter(gameObject, _defaultMaterial);
 
-        // Update the custom property block.
-        var block = _renderer.propertyBlock;
+        MaterialPropertyBlock block = _renderer.propertyBlock;
         block.SetTexture("_PreviousPositionBuffer", _kernel.GetWorkingBuffer(Buffers.Position));
         block.SetTexture("_PreviousRotationBuffer", _kernel.GetWorkingBuffer(Buffers.Rotation));
         block.SetTexture("_PositionBuffer", _kernel.GetLastBuffer(Buffers.Position));
@@ -302,9 +252,6 @@ public class SkinningParticle : MonoBehaviour
         _renderer.Update(_template.mesh);
     }
 
-    #endregion
-
-    #region MonoBehaviour functions
 
     void Reset()
     {
@@ -339,5 +286,4 @@ public class SkinningParticle : MonoBehaviour
         UpdateRenderer();
     }
 
-    #endregion
 }

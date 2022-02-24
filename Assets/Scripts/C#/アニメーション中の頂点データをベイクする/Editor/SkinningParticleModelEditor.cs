@@ -5,7 +5,7 @@ using System.IO;
 [CustomEditor(typeof(SkinningParticleModel))]
 public class SkinningParticleModelEditor : Editor
 {
-    #region Editor
+   
 
     SerializedProperty _shapes;
     SerializedProperty _maxInstanceCount;
@@ -26,7 +26,7 @@ public class SkinningParticleModelEditor : Editor
         EditorGUI.BeginChangeCheck();
         EditorGUILayout.PropertyField(_shapes, true);
         EditorGUILayout.PropertyField(_maxInstanceCount);
-        var rebuild = EditorGUI.EndChangeCheck();
+        bool rebuild = EditorGUI.EndChangeCheck();
 
         serializedObject.ApplyModifiedProperties();
 
@@ -38,9 +38,9 @@ public class SkinningParticleModelEditor : Editor
         if (rebuild) template.RebuildMesh();
     }
 
-    #endregion
+    
 
-    #region Create menu item functions
+    
 
     [MenuItem("Assets/Create/Skinning/Particle Template")]
     public static void CreateTemplateAsset()
@@ -52,7 +52,7 @@ public class SkinningParticleModelEditor : Editor
             path = path.Replace(Path.GetFileName(path), "");
         var assetPathName = AssetDatabase.GenerateUniqueAssetPath(path + "/New Skinning Particle Template.asset");
 
-        var asset = ScriptableObject.CreateInstance<SkinningParticleModel>();
+        SkinningParticleModel asset = ScriptableObject.CreateInstance<SkinningParticleModel>();
         AssetDatabase.CreateAsset(asset, assetPathName);
         AssetDatabase.AddObjectToAsset(asset.mesh, asset);
 
@@ -64,5 +64,5 @@ public class SkinningParticleModelEditor : Editor
         Selection.activeObject = asset;
     }
 
-    #endregion
+    
 }
