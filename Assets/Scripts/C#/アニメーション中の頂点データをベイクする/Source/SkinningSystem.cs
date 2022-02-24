@@ -9,7 +9,7 @@ public class SkinningSystem : MonoBehaviour
     #region 変数＋設定項目
 
     [SerializeField]
-    SkinnerModel _model;
+    SkinningModel _model;
 
     #endregion
 
@@ -30,13 +30,13 @@ public class SkinningSystem : MonoBehaviour
     /// 頂点位置をベイクしたテクスチャ
     public RenderTexture positionBuffer
     {
-        get { return _swapFlag ? _positionBuffer1 : _positionBuffer0; }
+        get { return _shiftFlag ? _positionBuffer1 : _positionBuffer0; }
     }
 
     /// 前フレームの頂点位置ベイクしたテクスチャ
     public RenderTexture previousPositionBuffer
     {
-        get { return _swapFlag ? _positionBuffer0 : _positionBuffer1; }
+        get { return _shiftFlag ? _positionBuffer0 : _positionBuffer1; }
     }
 
     ///法線をべいくしたテクスチャ
@@ -77,10 +77,10 @@ public class SkinningSystem : MonoBehaviour
     //レンダリングターゲット
     RenderBuffer[] _mrt0;
     RenderBuffer[] _mrt1;
-    bool _swapFlag;
+    bool _shiftFlag;
 
     // 頂点ベイクカメラ
-    Camera _bakeCamera;
+    Camera _bakeBufferCamera;
 
     // 1Fと2Fで除去のために使う
     int _frameCount;
@@ -88,8 +88,8 @@ public class SkinningSystem : MonoBehaviour
     // 頂点ベイクのレンダーテクスチャ作成
     RenderTexture CreateBuffer()
     {
-        var format = SkinningContents.supportedBufferFormat;
-        var rt = new RenderTexture(_model.vertexCount, 1, 0, format);
+        RenderTextureFormat format = SkinningContents.supportedBufferFormat;
+        RenderTexture rt = new RenderTexture(_model.vertexCount, 1, 0, format);
         rt.filterMode = FilterMode.Point;
         return rt;
     }
@@ -97,7 +97,7 @@ public class SkinningSystem : MonoBehaviour
     // レンダラーの設定をオーバーライド
     void OverrideRenderer()
     {
-        var smr = GetComponent<SkinnedMeshRenderer>();
+        SkinnedMeshRenderer smr = GetComponent<SkinnedMeshRenderer>();
         smr.sharedMesh = _model.mesh;
         smr.material = _placeholderMaterial;
         smr.receiveShadows = false;
@@ -110,31 +110,31 @@ public class SkinningSystem : MonoBehaviour
     void BuildCamera()
     {
         
-        var go = new GameObject("Camera");
+        GameObject go = new GameObject("Camera");
         go.hideFlags = HideFlags.HideInHierarchy;
 
         
-        var tr = go.transform;
+        Transform tr = go.transform;
         tr.parent = transform;
         tr.localPosition = Vector3.zero;
         tr.localRotation = Quaternion.identity;
 
         
-        _bakeCamera = go.AddComponent<Camera>();
+        _bakeBufferCamera = go.AddComponent<Camera>();
 
-        _bakeCamera.renderingPath = RenderingPath.Forward;
-        _bakeCamera.clearFlags = CameraClearFlags.SolidColor;
-        _bakeCamera.depth = -10000; 
+        _bakeBufferCamera.renderingPath = RenderingPath.Forward;
+        _bakeBufferCamera.clearFlags = CameraClearFlags.SolidColor;
+        _bakeBufferCamera.depth = -10000; 
 
-        _bakeCamera.nearClipPlane = -100;
-        _bakeCamera.farClipPlane = 100;
-        _bakeCamera.orthographic = true;
-        _bakeCamera.orthographicSize = 100;
+        _bakeBufferCamera.nearClipPlane = -100;
+        _bakeBufferCamera.farClipPlane = 100;
+        _bakeBufferCamera.orthographic = true;
+        _bakeBufferCamera.orthographicSize = 100;
 
-        _bakeCamera.enabled = false; 
+        _bakeBufferCamera.enabled = false; 
 
         
-        var culler = go.AddComponent<CullingState>();
+        CullingState culler = go.AddComponent<CullingState>();
         culler.target = GetComponent<SkinnedMeshRenderer>();
     }
 
@@ -165,7 +165,7 @@ public class SkinningSystem : MonoBehaviour
         OverrideRenderer();
         BuildCamera();
 
-        _swapFlag = true; 
+        _shiftFlag = true; 
     }
 
     void OnDestroy()
@@ -178,25 +178,25 @@ public class SkinningSystem : MonoBehaviour
 
     void LateUpdate()
     {
-        _swapFlag = !_swapFlag;
+        _shiftFlag = !_shiftFlag;
    
-        if (_swapFlag)
+        if (_shiftFlag)
         {
-            _bakeCamera.targetTexture = _positionBuffer1;
-            _bakeCamera.RenderWithShader(_replacementShaderPosition, "Skinner");
-            _bakeCamera.targetTexture = _normalBuffer;
-            _bakeCamera.RenderWithShader(_replacementShaderNormal, "Skinner");
-            _bakeCamera.targetTexture = _tangentBuffer;
-            _bakeCamera.RenderWithShader(_replacementShaderTangent, "Skinner");
+            _bakeBufferCamera.targetTexture = _positionBuffer1;
+            _bakeBufferCamera.RenderWithShader(_replacementShaderPosition, "Skinning");
+            _bakeBufferCamera.targetTexture = _normalBuffer;
+            _bakeBufferCamera.RenderWithShader(_replacementShaderNormal, "Skinning");
+            _bakeBufferCamera.targetTexture = _tangentBuffer;
+            _bakeBufferCamera.RenderWithShader(_replacementShaderTangent, "Skinning");
         }
         else
         {
-            _bakeCamera.targetTexture = _positionBuffer0;
-            _bakeCamera.RenderWithShader(_replacementShaderPosition, "Skinner");
-            _bakeCamera.targetTexture = _normalBuffer;
-            _bakeCamera.RenderWithShader(_replacementShaderNormal, "Skinner");
-            _bakeCamera.targetTexture = _tangentBuffer;
-            _bakeCamera.RenderWithShader(_replacementShaderTangent, "Skinner");
+            _bakeBufferCamera.targetTexture = _positionBuffer0;
+            _bakeBufferCamera.RenderWithShader(_replacementShaderPosition, "Skinning");
+            _bakeBufferCamera.targetTexture = _normalBuffer;
+            _bakeBufferCamera.RenderWithShader(_replacementShaderNormal, "Skinning");
+            _bakeBufferCamera.targetTexture = _tangentBuffer;
+            _bakeBufferCamera.RenderWithShader(_replacementShaderTangent, "Skinning");
         }
 
         _frameCount++;

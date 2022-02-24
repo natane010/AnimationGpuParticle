@@ -2,7 +2,7 @@ using UnityEditor;
 
 [CanEditMultipleObjects]
 [CustomEditor(typeof(SkinningSystem))]
-public class SkinnerSourceEditor : Editor
+public class SkinningSourceEditor : Editor
 {
     SerializedProperty _model;
 

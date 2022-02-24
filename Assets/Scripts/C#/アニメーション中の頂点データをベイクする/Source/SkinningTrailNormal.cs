@@ -90,7 +90,7 @@ public class SkinningTrailNormal : ScriptableObject
         if (_mesh == null)
         {
             _mesh = new Mesh();
-            _mesh.name = "Skinner Trail Template";
+            _mesh.name = "Skinning Trail Template";
         }
     }
 

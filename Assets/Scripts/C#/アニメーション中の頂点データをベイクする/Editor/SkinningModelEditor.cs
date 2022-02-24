@@ -5,18 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-[CustomEditor(typeof(SkinnerModel))]
-public class SkinnerModelEditor : Editor
+[CustomEditor(typeof(SkinningModel))]
+public class SkinningModelEditor : Editor
 {
-    #region Editor functions
-
-    public override void OnInspectorGUI()
-    {
-        var model = (SkinnerModel)target;
-        EditorGUILayout.LabelField("Vertex Count", model.vertexCount.ToString());
-    }
-
-    #endregion
 
     #region Create menu item functions
 
@@ -24,7 +15,7 @@ public class SkinnerModelEditor : Editor
     {
         get
         {
-            var assets = Selection.GetFiltered(typeof(Mesh), SelectionMode.Deep);
+            Object[] assets = Selection.GetFiltered(typeof(Mesh), SelectionMode.Deep);
             return assets.Select(x => (Mesh)x).ToArray();
         }
     }
@@ -32,20 +23,17 @@ public class SkinnerModelEditor : Editor
     static bool CheckSkinned(Mesh mesh)
     {
         if (mesh.boneWeights.Length > 0) return true;
-        Debug.LogError(
-            "The given mesh (" + mesh.name + ") is not skinned. " +
-            "Skinner only can handle skinned meshes."
-        );
+        
         return false;
     }
 
-    [MenuItem("Assets/Skinner/Convert Mesh", true)]
+    [MenuItem("Assets/Skinning/Convert Mesh", true)]
     static bool ValidateAssets()
     {
         return SelectedMeshAssets.Length > 0;
     }
 
-    [MenuItem("Assets/Skinner/Convert Mesh")]
+    [MenuItem("Assets/Skinning/Convert Mesh")]
     static void ConvertAssets()
     {
         var converted = new List<Object>();
@@ -54,12 +42,10 @@ public class SkinnerModelEditor : Editor
         {
             if (!CheckSkinned(source)) continue;
 
-            // Destination file path.
             var dirPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(source));
-            var assetPath = AssetDatabase.GenerateUniqueAssetPath(dirPath + "/New Skinner Model.asset");
+            var assetPath = AssetDatabase.GenerateUniqueAssetPath(dirPath + "/New Skinning Model.asset");
 
-            // Create a skinner model asset.
-            var asset = ScriptableObject.CreateInstance<SkinnerModel>();
+            SkinningModel asset = ScriptableObject.CreateInstance<SkinningModel>();
             asset.Initialize(source);
             AssetDatabase.CreateAsset(asset, assetPath);
             AssetDatabase.AddObjectToAsset(asset.mesh, asset);
@@ -67,10 +53,8 @@ public class SkinnerModelEditor : Editor
             converted.Add(asset);
         }
 
-        // Save the generated assets.
         AssetDatabase.SaveAssets();
 
-        // Select the generated assets.
         EditorUtility.FocusProjectWindow();
         Selection.objects = converted.ToArray();
     }

@@ -5,7 +5,7 @@ using UnityEditor;
 
 [CanEditMultipleObjects]
 [CustomEditor(typeof(SkinningTrail))]
-public class SkinnerTrailEditor : Editor
+public class SkinningTrailEditor : Editor
 {
     SerializedProperty _source;
     SerializedProperty _template;
